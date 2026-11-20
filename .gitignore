@@ -1,0 +1,15 @@
+# 工程生成物
+**/Objects/
+**/Listings/
+**/JLink/
+**/*.uvguix
+**/*.bak
+**/*.dep
+**/*.crf
+**/*.d
+**/*.o
+**/*.axf
+**/*.map
+**/*.htm
+.dsh-memory/
+.workbuddy/
