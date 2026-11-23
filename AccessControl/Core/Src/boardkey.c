@@ -1,11 +1,10 @@
 /*
- * boardkey.c - the two on-board push buttons S1 / S2
- * S1 = PA0, S2 = PE2, pressed reads 0 (internal pull-up keeps them high).
+ * boardkey.c - 板载两个按键 S1 / S2
+ * S1 = PA0, S2 = PE2, 按下读到 0 (内部上拉平时为高).
  *
- * Neither pin appears in gpio.c (the CubeMX project never configured them),
- * so this module configures them itself.  BoardKey_Scan() is polled from the
- * main loop and returns one event per physical press, because the counters
- * latch until the level has been released again.
+ * 这两个引脚没有出现在 gpio.c 里 (CubeMX 工程从未配置), 因此由本模块自己配置.
+ * BoardKey_Scan() 在主循环里轮询, 每次物理按下只返回一次事件, 因为计数器会
+ * 锁存到电平重新抬起为止.
  */
 #include "boardkey.h"
 

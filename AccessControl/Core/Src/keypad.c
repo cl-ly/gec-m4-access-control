@@ -1,16 +1,13 @@
 /*
- * keypad.c - 4x4 passive membrane keypad on the P8 header
+ * keypad.c - 挂在 P8 排针上的 4x4 无源薄膜键盘驱动
  *
- * The pad is a passive matrix: pressing a key only shorts two of the eight
- * wires.  The driver never decides which wire is a row and which is a
- * column.  Each line is briefly driven low (open drain) while the other
- * seven stay pulled-up inputs, so a pressed key is reported as the shorted
- * pair of lines, whichever side of the matrix those two wires belong to.
+ * 这块键盘是无源矩阵: 按下一个键只是把八根线里的两根短接. 驱动不去判断哪根
+ * 是行、哪根是列. 每次把一根线短暂拉低 (开漏), 其余七根保持上拉输入, 于是一次
+ * 按下就被记成「被短接的那一对线」, 不管那两根线在矩阵里属于哪一侧.
  *
- * The pair of every printed key ships as the measured factory table below, so
- * the pad answers keys on the first power-up with no teaching step.  A table
- * left in flash by an earlier firmware still wins, which keeps a pad that was
- * plugged in the other way around usable without touching this source file.
+ * 每个印刷键位对应的线对随下面这张实测出厂表一起发布, 所以键盘上电即可用,
+ * 不需要校准步骤. 早先固件留在 Flash 里的表仍然优先, 这样接反的键盘不改这份
+ * 源码也能继续用.
  */
 #include "keypad.h"
 #include "stm32f4xx_hal_flash.h"
@@ -20,19 +17,17 @@
 #define KP_NUM_KEYS    16u
 
 /*
- * STM32F407ZET6 has 512 KB of flash, 0x08000000..0x0807FFFF, so the last
- * sector that really exists is sector 7 at 0x08060000.  Sector 11 starts at
- * 0x080E0000 and only exists on the 1 MB parts (F407ZG / F407IG); pointing
- * the table there makes the erase fail and the learned table vanish on every
- * power cycle.  The code is about 11 KB, so the tail of sector 7 is free.
+ * STM32F407ZET6 的 Flash 是 512 KB, 地址 0x08000000..0x0807FFFF, 所以真正存在
+ * 的最后一个扇区是 0x08060000 起的扇区 7. 扇区 11 从 0x080E0000 开始, 只有
+ * 1 MB 的型号 (F407ZG / F407IG) 上才有; 把表指到那里会让擦除失败, 学到的表
+ * 每次上电都会丢. 代码约 11 KB, 扇区 7 的尾部是空闲的.
  */
 #define KP_SAVE_ADDR   0x0807C000u
 
 /*
- * The magic carries a format version.  Earlier firmware wrote a table built
- * from a guessed default mapping into the same place; bumping the magic makes
- * that stale table unreadable, so the board calibrates from an empty table
- * instead of silently loading wrong labels again.
+ * 这个 magic 里带格式版本号. 早先的固件曾把按猜测映射生成的表写进同一个
+ * 位置; 提高 magic 就让那张过期表读不出来, 于是板子从空表开始, 而不是又一次
+ * 悄悄加载错误的键位标签.
  */
 #define KP_SAVE_MAGIC  0x4B503032u
 
@@ -42,7 +37,7 @@ typedef struct
     uint16_t      pin;
 } KP_LINE;
 
-/* the eight wires of the pad, in the order they sit on the plug */
+/* 键盘的八根线, 按它们在插头上的顺序排列 */
 static const KP_LINE KP_PIN[KP_NUM_LINES] =
 {
     { GPIOG, GPIO_PIN_15 },
@@ -55,7 +50,7 @@ static const KP_LINE KP_PIN[KP_NUM_LINES] =
     { GPIOC, GPIO_PIN_8  }
 };
 
-/* label of each key slot, in the order the pair table below lists them */
+/* 每个键位槽的标签, 顺序与下面的线对表一致 */
 static const char KP_LABEL[KP_NUM_KEYS] =
 {
     '1', '2', '3', 'A', '4', '5', '6', 'B',
@@ -105,7 +100,7 @@ static void KP_DriveLow(uint8_t idx)
 {
     GPIO_InitTypeDef init = {0};
 
-    /* preload the latch low so the pin never glitches high when it switches */
+    /* 先把锁存器预置为低, 这样引脚切换到输出时不会闪出一段高电平 */
     HAL_GPIO_WritePin(KP_PIN[idx].port, KP_PIN[idx].pin, GPIO_PIN_RESET);
 
     init.Pin   = KP_PIN[idx].pin;
@@ -288,8 +283,7 @@ void Keypad_Init(void)
 
     Keypad_ResetPairs();
 
-    /* a table learned earlier wins; otherwise the measured factory table is
-       installed so the pad answers keys right away, with no calibration UI */
+    /* 早先学到的表优先; 否则装上实测的出厂表, 键盘立刻可响应, 没有校准界面 */
     if (KP_LoadPairs() == 0u)
     {
         KP_UseDefaults();

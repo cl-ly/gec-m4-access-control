@@ -1,8 +1,8 @@
 /*
- * oled.h - SSD1306 128x64 OLED, software SPI
+ * oled.h - SSD1306 128x64 OLED, 软件 SPI
  * SCK=PD7  SDA=PC6  CS=PD6  DC=PB7  RES=PA4  VCC=3.3V
- * Glyph data lives in oledfont.c (generated), Chinese text is drawn by
- * glyph index so no non-ASCII byte ever appears in a C source file.
+ * 字模数据在 oledfont.c 里 (自动生成), 中文一律按字模序号绘制, 这样 C 源码中
+ * 永远不会出现非 ASCII 字节.
  */
 #ifndef __OLED_H
 #define __OLED_H
@@ -13,7 +13,7 @@ void OLED_Init(void);
 void OLED_Clear(void);
 void OLED_ClearArea(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 
-/* panel power: 0xAE blanks the display but keeps the GDDRAM contents */
+/* 面板开关: 0xAE 只是熄灭显示, GDDRAM 里的内容仍然保留 */
 void OLED_DisplayOn(void);
 void OLED_DisplayOff(void);
 void OLED_ShowChar(uint8_t x, uint8_t y, char ch);
@@ -21,7 +21,7 @@ void OLED_ShowString(uint8_t x, uint8_t y, const char *str);
 void OLED_ShowCN16(uint8_t x, uint8_t y, uint8_t idx);
 void OLED_ShowCNSeq(uint8_t x, uint8_t y, const uint8_t *seq, uint8_t num);
 
-/* glyph order inside OLED_CN16[], same order as chars.txt during generation */
+/* OLED_CN16[] 里的字模顺序, 与生成时的 chars.txt 顺序一致 */
 #define G_YI     0
 #define G_KAI    1
 #define G_MEN    2

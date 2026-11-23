@@ -1,12 +1,11 @@
 /*
- * rc522.c - MFRC522 RFID reader on software SPI
+ * rc522.c - 软件 SPI 驱动的 MFRC522 读卡器
  * SCK=PG12  MOSI=PD4  MISO=PD5  CS(SDA)=PF12  RST=PE10
  *
- * The vendor example drives PD7/PC6/PC8/PD6/PC11, and on this board four of
- * those already belong to the OLED and the 4x4 keypad, so the reader sits on
- * five GPIOs that only double as FSMC lines (free because no TFTLCD panel is
- * fitted).  The bit banging follows the vendor sequence: MOSI is set first,
- * then SCK rises and MISO is sampled, then SCK falls again.
+ * 厂商例程驱动的是 PD7/PC6/PC8/PD6/PC11, 而本板上其中四根已经属于 OLED 和
+ * 4x4 键盘, 所以读卡器改接五根只兼作 FSMC 的 GPIO (本工程没装 TFTLCD 屏,
+ * 那几根线因此空闲). 软件翻转的时序照抄厂商顺序: 先设 MOSI, 再拉高 SCK 并
+ * 采样 MISO, 最后把 SCK 拉回低.
  */
 #include "rc522.h"
 
@@ -56,7 +55,7 @@
 #define MI_ERR           1u
 #define MI_NOTAGERR      2u
 
-/* SCK/MOSI/CS/RST are outputs, MISO (PD5) stays an input with a pull-up */
+/* SCK/MOSI/CS/RST 是输出, MISO (PD5) 保持带上拉的输入 */
 static void RC522_GpioInit(void)
 {
     GPIO_InitTypeDef init = {0};
@@ -78,7 +77,7 @@ static void RC522_GpioInit(void)
     init.Pin = GPIO_PIN_10;
     HAL_GPIO_Init(GPIOE, &init);
 
-    /* CS (SDA on the module) = PF12 */
+    /* 片选 CS (模块上的 SDA) = PF12 */
     init.Pin = GPIO_PIN_12;
     HAL_GPIO_Init(GPIOF, &init);
 
@@ -86,7 +85,7 @@ static void RC522_GpioInit(void)
     init.Pin = GPIO_PIN_12;
     HAL_GPIO_Init(GPIOG, &init);
 
-    /* MISO = PD5, driven by the reader, so input with pull-up */
+    /* MISO = PD5, 由读卡器驱动, 所以配成上拉输入 */
     init.Mode = GPIO_MODE_INPUT;
     init.Pull = GPIO_PULLUP;
     init.Pin  = GPIO_PIN_5;
@@ -344,7 +343,7 @@ uint8_t RC522_Init(void)
 
     RC522_Reset();
 
-    /* 25 ms internal timer, 100 % ASK, CRC preset 0x6363 */
+    /* 内部定时器 25 ms, 100 % ASK 调制, CRC 预置值 0x6363 */
     RC522_WriteReg(TModeReg, 0x8Du);
     RC522_WriteReg(TPrescalerReg, 0x3Eu);
     RC522_WriteReg(TReloadRegL, 0x1Eu);

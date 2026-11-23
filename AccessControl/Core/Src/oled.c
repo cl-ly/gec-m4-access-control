@@ -1,7 +1,7 @@
 /*
- * oled.c - SSD1306 128x64, software SPI on P8 header
+ * oled.c - SSD1306 128x64 屏, 走 P8 排针上的软件 SPI
  * PD7 = SCK, PC6 = SDA(MOSI), PD6 = CS, PB7 = DC, PA4 = RES
- * Pins are already configured as push-pull outputs by MX_GPIO_Init().
+ * 这几个引脚在 MX_GPIO_Init() 里已经配置成推挽输出.
  */
 #include "oled.h"
 #include "oledfont.h"
@@ -20,12 +20,10 @@
 #define OLED_WIDTH       128u
 #define OLED_PAGES       8u
 
-/* The panel is specified for 10 MHz at most, while the bit-banged loop used
-   to run with no delay at all (roughly 30 MHz at 168 MHz core clock).  At that
-   speed a marginal edge corrupted a command byte now and then, the column
-   address pointer jumped and the text turned into scrambled glyphs - most
-   visibly while the distance page was rewritten on every measurement.  A
-   short settle time per edge brings the bus down to about 2 MHz. */
+/* 这块屏规格上最高只支持 10 MHz, 而软件翻转的循环原本一点延时都不加
+   (168 MHz 主频下相当于大约 30 MHz). 那个速度下边沿勉强, 偶尔会写坏一个
+   命令字节, 列地址指针随即跳位, 文字就变成一堆错乱的字块 —— 距离页每次
+   测量都重画时最明显. 每个边沿加一点建立时间, 总线就降到约 2 MHz. */
 static void OLED_BitDelay(void)
 {
     volatile uint8_t n = 6u;
@@ -42,7 +40,7 @@ static void OLED_WrByte(uint8_t dat)
 
     for (i = 0; i < 8u; i++)
     {
-        OLED_SCK_CLR();              /* clock low: data may change here */
+        OLED_SCK_CLR();              /* 时钟拉低: 这段允许数据变化 */
         OLED_BitDelay();
 
         if (dat & 0x80u)
@@ -55,7 +53,7 @@ static void OLED_WrByte(uint8_t dat)
         }
         OLED_BitDelay();
 
-        OLED_SCK_SET();              /* rising edge: the panel latches the bit */
+        OLED_SCK_SET();              /* 上升沿: 屏在这一刻锁存该位 */
         OLED_BitDelay();
 
         dat = (uint8_t)(dat << 1);
@@ -96,36 +94,35 @@ void OLED_Init(void)
     OLED_RES_SET();
     HAL_Delay(20);
 
-    OLED_WrCmd(0xAEu);           /* display off */
-    OLED_WrCmd(0x20u);           /* memory addressing mode */
-    OLED_WrCmd(0x02u);           /* page addressing */
-    OLED_WrCmd(0xB0u);           /* page start 0 */
-    OLED_WrCmd(0xC8u);           /* COM scan remapped */
-    OLED_WrCmd(0x00u);           /* low column 0 */
-    OLED_WrCmd(0x10u);           /* high column 0 */
-    OLED_WrCmd(0x40u);           /* start line 0 */
-    OLED_WrCmd(0x81u);           /* contrast */
+    OLED_WrCmd(0xAEu);           /* 关闭显示 */
+    OLED_WrCmd(0x20u);           /* 设置内存寻址模式 */
+    OLED_WrCmd(0x02u);           /* 页寻址 */
+    OLED_WrCmd(0xB0u);           /* 起始页 0 */
+    OLED_WrCmd(0xC8u);           /* COM 扫描方向取反 */
+    OLED_WrCmd(0x00u);           /* 列地址低 4 位为 0 */
+    OLED_WrCmd(0x10u);           /* 列地址高 4 位为 0 */
+    OLED_WrCmd(0x40u);           /* 起始行 0 */
+    OLED_WrCmd(0x81u);           /* 对比度 */
     OLED_WrCmd(0xCFu);
-    OLED_WrCmd(0xA1u);           /* segment remap */
-    OLED_WrCmd(0xA6u);           /* normal (not inverted) */
-    OLED_WrCmd(0xA8u);           /* multiplex */
+    OLED_WrCmd(0xA1u);           /* 段重映射 */
+    OLED_WrCmd(0xA6u);           /* 正常显示, 不反色 */
+    OLED_WrCmd(0xA8u);           /* 复用率 */
     OLED_WrCmd(0x3Fu);
-    OLED_WrCmd(0xA4u);           /* output follows RAM */
-    OLED_WrCmd(0xD3u);           /* display offset */
+    OLED_WrCmd(0xA4u);           /* 输出跟随 GDDRAM */
+    OLED_WrCmd(0xD3u);           /* 显示偏移 */
     OLED_WrCmd(0x00u);
-    OLED_WrCmd(0xD5u);           /* clock divide */
-    OLED_WrCmd(0x80u);           /* slower internal clock: the panel keeps its
-                                    timing margin while the ranger fires a
-                                    40 kHz burst on the same 5 V rail */
-    OLED_WrCmd(0xD9u);           /* pre-charge */
+    OLED_WrCmd(0xD5u);           /* 时钟分频 */
+    OLED_WrCmd(0x80u);           /* 内部时钟取慢档: 超声波在同一条 5 V 电源轨上
+                                    发射 40 kHz 脉冲时, 屏仍有余量守住时序 */
+    OLED_WrCmd(0xD9u);           /* 预充电周期 */
     OLED_WrCmd(0xF1u);
-    OLED_WrCmd(0xDAu);           /* COM pins */
+    OLED_WrCmd(0xDAu);           /* COM 引脚配置 */
     OLED_WrCmd(0x12u);
-    OLED_WrCmd(0xDBu);           /* VCOMH */
+    OLED_WrCmd(0xDBu);           /* VCOMH 电压 */
     OLED_WrCmd(0x40u);
-    OLED_WrCmd(0x8Du);           /* charge pump on */
+    OLED_WrCmd(0x8Du);           /* 打开电荷泵 */
     OLED_WrCmd(0x14u);
-    OLED_WrCmd(0xAFu);           /* display on */
+    OLED_WrCmd(0xAFu);           /* 打开显示 */
 
     OLED_Clear();
 }
