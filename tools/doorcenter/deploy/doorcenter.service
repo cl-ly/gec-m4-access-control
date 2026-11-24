@@ -1,0 +1,35 @@
+[Unit]
+Description=Door access center (board gateway + web console)
+Documentation=file:///opt/doorcenter/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=doorcenter
+Group=doorcenter
+WorkingDirectory=/opt/doorcenter
+ExecStart=/usr/bin/python3 /opt/doorcenter/doorcenter.py \
+  --db /var/lib/doorcenter/door.db \
+  --auth-file /var/lib/doorcenter/doorcenter-auth.json \
+  --ui /opt/doorcenter/ui \
+  --board-host 0.0.0.0 --board-port 8080 \
+  --http-host 127.0.0.1 --http-port 8081 \
+  --board-log
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=doorcenter
+
+# 只允许写自己的数据目录
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/doorcenter
+
+[Install]
+WantedBy=multi-user.target
