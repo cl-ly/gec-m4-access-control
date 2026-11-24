@@ -1,11 +1,9 @@
 /*
- * keypad.h - 4x4 passive membrane keypad on the P8 header
+ * keypad.h - 挂在 P8 排针上的 4x4 无源薄膜键盘
  *
- * Neither the row group nor the column group of the matrix is assumed: the
- * driver reports which two of the eight wires a pressed key shorts.  The
- * pair of every printed key ships as a table measured on this board, so the pad
- * answers keys on the very first power-up.  A table left in flash by an earlier
- * firmware wins over it; there is no calibration screen any more.
+ * 不假设矩阵里哪一组是行、哪一组是列: 驱动只上报按下的键把八根线里的哪两根
+ * 短接. 每个印刷键位对应的线对以在本板上实测到的表发布, 所以键盘第一次上电就
+ * 能响应按键. 早先固件留在 Flash 里的表优先级更高; 现在已经没有校准界面.
  */
 #ifndef __KEYPAD_H
 #define __KEYPAD_H
