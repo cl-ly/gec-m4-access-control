@@ -13,3 +13,7 @@
 **/*.htm
 .dsh-memory/
 .workbuddy/
+
+# Python 缓存 (门禁中控的自测与部署脚本)
+__pycache__/
+*.pyc

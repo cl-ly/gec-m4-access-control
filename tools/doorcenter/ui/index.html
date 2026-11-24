@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang='zh-CN'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>门禁中控 · 远程开门与记录</title>
+<link rel='stylesheet' href='app.css'>
+<script src='app.js' defer></script>
+</head>
+<body>
+
+<div id='boot' class='boot'>正在连接门禁服务…</div>
+
+<section id='login-view' class='login' hidden>
+  <form id='login-form' class='login-card'>
+    <p class='eyebrow'>ACCESS CONTROL</p>
+    <h1>门禁中控</h1>
+    <p class='muted'>后台密码存放在服务器的凭据文件里, 服务重启、重新部署都不会把它重置回初始值。</p>
+    <label class='field'><span>后台密码</span><input id='login-pwd' type='password' autocomplete='current-password' required></label>
+    <p id='login-error' class='form-error' role='alert' hidden></p>
+    <button id='login-submit' class='btn btn-primary' type='submit'>进入控制台</button>
+  </form>
+</section>
+
+<div id='app' hidden>
+<header class='topbar'>
+  <div class='brand'><span class='mark' aria-hidden='true'></span><span class='brand-text'>门禁中控<small>GEC-M4 · STM32F407ZET6</small></span></div>
+  <nav class='nav' aria-label='主导航'>
+    <button class='nav-btn is-on' data-view='overview' type='button'>概览</button>
+    <button class='nav-btn' data-view='events' type='button'>开门记录</button>
+    <button class='nav-btn' data-view='cards' type='button'>门卡</button>
+    <button class='nav-btn' data-view='settings' type='button'>设置</button>
+  </nav>
+  <div class='topbar-right'>
+    <span id='board-pill' class='pill'>状态未知</span>
+    <button id='logout' class='btn btn-quiet' type='button'>退出</button>
+  </div>
+</header>
+
+<main>
+  <section id='view-overview' class='view'>
+    <div class='hero'>
+      <div class='hero-main'>
+        <p class='eyebrow'>远程开门</p>
+        <h2 id='door-title'>正在读取门禁板状态…</h2>
+        <p id='door-hint' class='muted'>…</p>
+        <button id='open-btn' class='btn btn-primary btn-xl' type='button' disabled>开门</button>
+        <p id='open-result' class='inline-note' role='status' hidden></p>
+      </div>
+      <dl class='facts'>
+        <div><dt>在线连接</dt><dd id='fact-online'>–</dd></div>
+        <div><dt>最近一次成功开门</dt><dd id='fact-last'>–</dd></div>
+        <div><dt>服务器时间</dt><dd id='fact-time'>–</dd></div>
+        <div><dt>累计记录</dt><dd id='fact-total'>–</dd></div>
+      </dl>
+    </div>
+
+    <h3 class='section-title'>今日统计</h3>
+    <div id='stats' class='stats'></div>
+
+    <h3 class='section-title'>板子连接</h3>
+    <div id='board-wrap' class='table-wrap'></div>
+  </section>
+
+  <section id='view-events' class='view' hidden>
+    <div class='view-head'>
+      <h2>开门记录</h2>
+      <div id='event-filters' class='chips' role='group' aria-label='按类型筛选'>
+        <button class='chip is-on' data-kind='' type='button'>全部</button>
+        <button class='chip' data-kind='card' type='button'>刷卡</button>
+        <button class='chip' data-kind='password' type='button'>密码</button>
+        <button class='chip' data-kind='remote' type='button'>远程</button>
+        <button class='chip' data-kind='admin' type='button'>后台</button>
+        <button class='chip' data-kind='system' type='button'>系统</button>
+      </div>
+    </div>
+    <div id='events-wrap' class='table-wrap'></div>
+  </section>
+
+  <section id='view-cards' class='view' hidden>
+    <div class='view-head'>
+      <h2>门卡</h2>
+      <p class='muted'>刷过的卡会自动收录。UID 是板子读出的十六进制值, 与固件里配对的那张卡一致才会开锁。</p>
+    </div>
+    <div id='cards-wrap' class='table-wrap'></div>
+  </section>
+
+  <section id='view-settings' class='view' hidden>
+    <div class='view-head'><h2>设置</h2></div>
+    <form id='pwd-form' class='panel'>
+      <h3>修改后台密码</h3>
+      <p class='muted'>写入服务器上的凭据文件, 不在数据库里, 清空记录也不会丢。</p>
+      <label class='field'><span>原密码</span><input id='pwd-old' type='password' autocomplete='current-password' required></label>
+      <label class='field'><span>新密码 (至少 6 位)</span><input id='pwd-new' type='password' autocomplete='new-password' minlength='6' required></label>
+      <label class='field'><span>再输一次</span><input id='pwd-new2' type='password' autocomplete='new-password' minlength='6' required></label>
+      <p id='pwd-msg' class='inline-note' role='status' hidden></p>
+      <button class='btn btn-primary' type='submit'>保存</button>
+    </form>
+  </section>
+</main>
+<div id='toast' class='toast' role='status' hidden></div>
+</div>
+</body>
+</html>
